@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os
+
+from pathlib import Path
 try:
     from setuptools import setup
     from setuptools import find_packages
@@ -9,16 +10,8 @@ except ImportError:
                       "Please install the setuptools package.")
 
 
-def text_of(relpath):
-    """
-    Return string containing the contents of the file at *relpath* relative to
-    this file.
-    """
-    thisdir = os.path.dirname(__file__)
-    file_path = os.path.join(thisdir, os.path.normpath(relpath))
-    with open(file_path) as f:
-        text = f.read()
-    return text
+readme = Path("README.md")
+license = Path("LICENSE")
 
 
 # Read the version without importing the package
@@ -33,7 +26,7 @@ KEYWORDS = 'django send email'
 AUTHOR = 'djangomail'
 AUTHOR_EMAIL = 'djangomail@163.com'
 URL = 'https://github.com/djangomail/mail'
-LICENSE = text_of("LICENSE")
+LICENSE = license.read_text()
 PACKAGES = find_packages(exclude=['tests', 'tests.*'])
 
 INSTALL_REQUIRES = []
@@ -53,7 +46,7 @@ CLASSIFIERS = [
     'Topic :: Utilities',
 ]
 
-LONG_DESCRIPTION = text_of('README.md')
+LONG_DESCRIPTION = readme
 
 
 params = {
@@ -70,6 +63,7 @@ params = {
     'tests_require':    TESTS_REQUIRE,
     'test_suite':       TEST_SUITE,
     'classifiers':      CLASSIFIERS,
+    'long_description': readme.read_text()
 }
 
 if __name__ == '__main__':

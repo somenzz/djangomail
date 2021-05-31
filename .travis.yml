@@ -1,3 +1,13 @@
-  language: python
-  script:
-    - python setup.py test
+# Config file for automatic testing at travis-ci.com
+
+language: python
+python:
+  - 3.8
+  - 3.7
+  - 3.6
+  - 3.5
+
+# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+
+# Command to run tests, e.g. python setup.py test
+script: tox

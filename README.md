@@ -1,4 +1,7 @@
-## djangomail
+
+# djangomail
+
+[![Build Status](https://travis-ci.com/somenzz/djangomail.svg?branch=main)](https://travis-ci.com/somenzz/djangomail)
 
 将 mail 模块从 Django 中独立出来，做为 Python 发邮件的独立的库，就是 djangomail，使用起来比 smtplib 要方便很多。
 
