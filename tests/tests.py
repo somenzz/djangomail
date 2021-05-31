@@ -1,7 +1,8 @@
 from djangomail.mail import send_mail
 from djangomail.conf import settings
 import unittest
-
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 class MailTest(unittest.TestCase):
 
     def test_send_mail(self):
