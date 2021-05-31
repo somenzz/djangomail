@@ -2,12 +2,22 @@
 
 language: python
 python:
+  - 3.9
   - 3.8
   - 3.7
   - 3.6
   - 3.5
+  - 2.7
 
-# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-
-# Command to run tests, e.g. python setup.py test
+install:
+  - pip install tox
+  - pip install coveralls
 script: tox
+after_script: coveralls
+notifications:
+  email:
+    recipients:
+      - somenzz@163.com
+    on_success: change
+    on_failure: always
+

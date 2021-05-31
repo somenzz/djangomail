@@ -14,6 +14,25 @@ class MailTest(unittest.TestCase):
         # )
         self.assertTrue(True)
 
+    def test_send_mass_mail(self):
+        # send_mail(
+        #     subject="邮件主题",
+        #     message="邮件内容",
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=["xxxxx@163.com", "xxxxxx@qq.com"],
+        # )
+        self.assertTrue(True)
+
+
+    def test_send_html_mail(self):
+        # send_mail(
+        #     subject="邮件主题",
+        #     message="邮件内容",
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=["xxxxx@163.com", "xxxxxx@qq.com"],
+        # )
+        self.assertTrue(True)
+
 
 
 if __name__ == '__main__':
