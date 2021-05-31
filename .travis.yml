@@ -10,9 +10,8 @@ python:
 
 install:
   - pip install tox
-  - pip install coveralls
-script: tox
-after_script: coveralls
+script:
+  - tox
 notifications:
   email:
     recipients:
