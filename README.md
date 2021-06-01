@@ -35,8 +35,6 @@ SERVER_EMAIL = EMAIL_HOST_USER
 
 然后就可以愉快的发邮件了：
 
-example 
-
 ```python
 from djangomail import send_mail,send_mass_mail
 import settings
