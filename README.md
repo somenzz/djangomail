@@ -73,3 +73,23 @@ send_mass_mail((message1, message2), fail_silently=False)
 
 
 ```
+
+## 相关的装饰器
+
+当某个函数抛出指定的异常时，发送异常相关的堆栈信息邮件给运维人员，可以大大提升处理效率。
+
+这里有一个非常好用的装饰器 [`email_on_exception`](https://github.com/somenzz/somedecorators#email_on_exception)
+
+使用方法：
+
+```python
+from somedecorators import email_on_exception 
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+
+@email_on_exception(['somenzz@163.com'])
+def myfunc():
+    1/0
+
+myfunc()
+```

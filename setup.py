@@ -17,14 +17,14 @@ license = Path("LICENSE")
 # Read the version without importing the package
 # (and thus attempting to import packages it depends on that may not be
 # installed yet)
-version = "0.2"
+version = "0.3"
 
 NAME = 'djangomail'
 VERSION = version
-DESCRIPTION = 'a stand-alone mail module from django'
-KEYWORDS = 'django send email'
-AUTHOR = 'djangomail'
-AUTHOR_EMAIL = 'djangomail@163.com'
+DESCRIPTION = 'A stand-alone mail module from django'
+KEYWORDS = 'python send email'
+AUTHOR = 'somenzz'
+AUTHOR_EMAIL = 'somenzz@163.com'
 URL = 'https://github.com/somenzz/djangomail'
 LICENSE = license.read_text()
 PACKAGES = find_packages(exclude=['tests', 'tests.*'])
