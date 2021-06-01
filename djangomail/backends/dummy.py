@@ -2,7 +2,7 @@
 Dummy email backend that does nothing.
 """
 
-from djangomail.mail.backends.base import BaseEmailBackend
+from djangomail.backends.base import BaseEmailBackend
 
 
 class EmailBackend(BaseEmailBackend):

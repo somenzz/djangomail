@@ -1,9 +1,6 @@
-
 import datetime
 
 from decimal import Decimal
-
-
 
 
 class DjangoUnicodeDecodeError(UnicodeDecodeError):
@@ -12,11 +9,21 @@ class DjangoUnicodeDecodeError(UnicodeDecodeError):
         super().__init__(*args)
 
     def __str__(self):
-        return '%s. You passed in %r (%s)' % (super().__str__(), self.obj, type(self.obj))
+        return "%s. You passed in %r (%s)" % (
+            super().__str__(),
+            self.obj,
+            type(self.obj),
+        )
 
 
 _PROTECTED_TYPES = (
-    type(None), int, float, Decimal, datetime.datetime, datetime.date, datetime.time,
+    type(None),
+    int,
+    float,
+    Decimal,
+    datetime.datetime,
+    datetime.date,
+    datetime.time,
 )
 
 
@@ -28,7 +35,8 @@ def is_protected_type(obj):
     """
     return isinstance(obj, _PROTECTED_TYPES)
 
-def force_str(s, encoding='utf-8', strings_only=False, errors='strict'):
+
+def force_str(s, encoding="utf-8", strings_only=False, errors="strict"):
     """
     Similar to smart_str(), except that lazy instances are resolved to
     strings, rather than kept as lazy objects.
@@ -52,4 +60,4 @@ def force_str(s, encoding='utf-8', strings_only=False, errors='strict'):
 
 def punycode(domain):
     """Return the Punycode of the given domain if it's non-ASCII."""
-    return domain.encode('idna').decode('ascii')
+    return domain.encode("idna").decode("ascii")
