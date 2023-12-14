@@ -5,7 +5,7 @@ from djangomail.conf import settings
 
 # Imported for backwards compatibility and for the sake
 # of a cleaner namespace. These symbols used to be in
-# django/core/mail.py before the introduction of email
+# djangomail.py before the introduction of email
 # backends and the subsequent reorganization (See #10355)
 from djangomail.message import (
     DEFAULT_ATTACHMENT_MIME_TYPE,
@@ -18,8 +18,7 @@ from djangomail.message import (
     make_msgid,
 )
 from djangomail.utils import DNS_NAME, CachedDnsName
-from importlib import import_module
-
+from djangomail.utils.module_loading import import_string
 
 __all__ = [
     "CachedDnsName",
@@ -38,27 +37,6 @@ __all__ = [
     "mail_admins",
     "mail_managers",
 ]
-
-
-def import_string(dotted_path):
-    """
-    Import a dotted module path and return the attribute/class designated by the
-    last name in the path. Raise ImportError if the import failed.
-    """
-    try:
-        module_path, class_name = dotted_path.rsplit(".", 1)
-    except ValueError as err:
-        raise ImportError("%s doesn't look like a module path" % dotted_path) from err
-
-    module = import_module(module_path)
-
-    try:
-        return getattr(module, class_name)
-    except AttributeError as err:
-        raise ImportError(
-            'Module "%s" does not define a "%s" attribute/class'
-            % (module_path, class_name)
-        ) from err
 
 
 def get_connection(backend=None, fail_silently=False, **kwds):
@@ -88,6 +66,7 @@ def send_mail(
     Easy wrapper for sending a single message to a recipient list. All members
     of the recipient list will see the other recipients in the 'To' field.
 
+    If from_email is None, use the DEFAULT_FROM_EMAIL setting.
     If auth_user is None, use the EMAIL_HOST_USER setting.
     If auth_password is None, use the EMAIL_HOST_PASSWORD setting.
 

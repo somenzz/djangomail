@@ -1,8 +1,6 @@
 from djangomail import send_mail,send_mass_mail
 from djangomail.conf import settings
 import unittest
-import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 class MailTest(unittest.TestCase):
     receivers = ["xxxxx@163.com", "xxxxxx@qq.com"]
     def test_send_mail(self):

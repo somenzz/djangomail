@@ -3,16 +3,9 @@
 import datetime
 import os
 
-from django.conf import settings
-from djangomail.backends.console import (
-    EmailBackend as ConsoleEmailBackend,
-)
-
-
-class ImproperlyConfigured(Exception):
-    """Django is somehow improperly configured"""
-
-    pass
+from djangomail.conf import settings
+from djangmail.exceptions import ImproperlyConfigured
+from djangmail.mail.backends.console import EmailBackend as ConsoleEmailBackend
 
 
 class EmailBackend(ConsoleEmailBackend):
@@ -22,11 +15,6 @@ class EmailBackend(ConsoleEmailBackend):
             self.file_path = file_path
         else:
             self.file_path = getattr(settings, "EMAIL_FILE_PATH", None)
-        # Make sure self.file_path is a string.
-        if not isinstance(self.file_path, str):
-            raise ImproperlyConfigured(
-                "Path for saving emails is invalid: %r" % self.file_path
-            )
         self.file_path = os.path.abspath(self.file_path)
         try:
             os.makedirs(self.file_path, exist_ok=True)

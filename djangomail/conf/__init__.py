@@ -13,26 +13,28 @@ import traceback
 import warnings
 from pathlib import Path
 
+#import django
 from djangomail.conf import global_settings
-
+from djangomail.exceptions import ImproperlyConfigured
+from djangomail.utils.deprecation import RemovedInDjango51Warning, RemovedInDjango60Warning
 from djangomail.utils.functional import LazyObject, empty
 
 ENVIRONMENT_VARIABLE = "DJANGO_SETTINGS_MODULE"
+DEFAULT_STORAGE_ALIAS = "default"
+STATICFILES_STORAGE_ALIAS = "staticfiles"
 
-FILE_CHARSET_DEPRECATED_MSG = (
-    "The FILE_CHARSET setting is deprecated. Starting with Django 3.1, all "
-    "files read from disk must be UTF-8 encoded."
+DEFAULT_FILE_STORAGE_DEPRECATED_MSG = (
+    "The DEFAULT_FILE_STORAGE setting is deprecated. Use STORAGES instead."
 )
 
+STATICFILES_STORAGE_DEPRECATED_MSG = (
+    "The STATICFILES_STORAGE setting is deprecated. Use STORAGES instead."
+)
 
-class ImproperlyConfigured(Exception):
-    """Django is somehow improperly configured"""
-
-    pass
-
-
-class RemovedInDjango31Warning(DeprecationWarning):
-    pass
+# RemovedInDjango60Warning.
+FORMS_URLFIELD_ASSUME_HTTPS_DEPRECATED_MSG = (
+    "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated."
+)
 
 
 class SettingsReference(str):
@@ -64,12 +66,13 @@ class LazySettings(LazyObject):
         settings_module = os.environ.get(ENVIRONMENT_VARIABLE)
         if not settings_module:
             desc = ("setting %s" % name) if name else "settings"
-            raise ImproperlyConfigured(
-                "Requested %s, but settings are not configured. "
-                "You must either define the environment variable %s "
-                "or call settings.configure() before accessing settings."
-                % (desc, ENVIRONMENT_VARIABLE)
-            )
+            settings_module = "settings"
+            #raise ImproperlyConfigured(
+            #    "Requested %s, but settings are not configured. "
+            #    "You must either define the environment variable %s "
+            #    "or call settings.configure() before accessing settings."
+            #    % (desc, ENVIRONMENT_VARIABLE)
+            #)
 
         self._wrapped = Settings(settings_module)
 
@@ -83,9 +86,18 @@ class LazySettings(LazyObject):
 
     def __getattr__(self, name):
         """Return the value of a setting and cache it in self.__dict__."""
-        if self._wrapped is empty:
+        if (_wrapped := self._wrapped) is empty:
             self._setup(name)
-        val = getattr(self._wrapped, name)
+            _wrapped = self._wrapped
+        val = getattr(_wrapped, name)
+
+        # Special case some settings which require further modification.
+        # This is done here for performance reasons so the modified value is cached.
+        if name in {"MEDIA_URL", "STATIC_URL"} and val is not None:
+            val = self._add_script_prefix(val)
+        elif name == "SECRET_KEY" and not val:
+            raise ImproperlyConfigured("The SECRET_KEY setting must not be empty.")
+
         self.__dict__[name] = val
         return val
 
@@ -120,18 +132,50 @@ class LazySettings(LazyObject):
             setattr(holder, name, value)
         self._wrapped = holder
 
+    @staticmethod
+    def _add_script_prefix(value):
+        """
+        Add SCRIPT_NAME prefix to relative paths.
+
+        Useful when the app is being served at a subpath and manually prefixing
+        subpath to STATIC_URL and MEDIA_URL in settings is inconvenient.
+        """
+        # Don't apply prefix to absolute paths and URLs.
+        if value.startswith(("http://", "https://", "/")):
+            return value
+        from django.urls import get_script_prefix
+
+        return "%s%s" % (get_script_prefix(), value)
+
     @property
     def configured(self):
         """Return True if the settings have already been configured."""
         return self._wrapped is not empty
 
-    @property
-    def FILE_CHARSET(self):
+    def _show_deprecation_warning(self, message, category):
         stack = traceback.extract_stack()
         # Show a warning if the setting is used outside of Django.
-        # Stack index: -1 this line, -2 the caller.
-        filename, _line_number, _function_name, _text = stack[-2]
-        return self.__getattr__("FILE_CHARSET")
+        # Stack index: -1 this line, -2 the property, -3 the
+        # LazyObject __getattribute__(), -4 the caller.
+        filename, _, _, _ = stack[-4]
+        if not filename.startswith(os.path.dirname(django.__file__)):
+            warnings.warn(message, category, stacklevel=2)
+
+    # RemovedInDjango51Warning.
+    @property
+    def DEFAULT_FILE_STORAGE(self):
+        self._show_deprecation_warning(
+            DEFAULT_FILE_STORAGE_DEPRECATED_MSG, RemovedInDjango51Warning
+        )
+        return self.__getattr__("DEFAULT_FILE_STORAGE")
+
+    # RemovedInDjango51Warning.
+    @property
+    def STATICFILES_STORAGE(self):
+        self._show_deprecation_warning(
+            STATICFILES_STORAGE_DEPRECATED_MSG, RemovedInDjango51Warning
+        )
+        return self.__getattr__("STATICFILES_STORAGE")
 
 
 class Settings:
@@ -147,9 +191,11 @@ class Settings:
         mod = importlib.import_module(self.SETTINGS_MODULE)
 
         tuple_settings = (
+            "ALLOWED_HOSTS",
             "INSTALLED_APPS",
             "TEMPLATE_DIRS",
             "LOCALE_PATHS",
+            "SECRET_KEY_FALLBACKS",
         )
         self._explicit_settings = set()
         for setting in dir(mod):
@@ -160,14 +206,16 @@ class Settings:
                     setting_value, (list, tuple)
                 ):
                     raise ImproperlyConfigured(
-                        "The %s setting must be a list or a tuple. " % setting
+                        "The %s setting must be a list or a tuple." % setting
                     )
                 setattr(self, setting, setting_value)
                 self._explicit_settings.add(setting)
 
-
-        if self.is_overridden("FILE_CHARSET"):
-            warnings.warn(FILE_CHARSET_DEPRECATED_MSG, RemovedInDjango31Warning)
+        if self.is_overridden("FORMS_URLFIELD_ASSUME_HTTPS"):
+            warnings.warn(
+                FORMS_URLFIELD_ASSUME_HTTPS_DEPRECATED_MSG,
+                RemovedInDjango60Warning,
+            )
 
         if hasattr(time, "tzset") and self.TIME_ZONE:
             # When we can, attempt to validate the timezone. If we can't find
@@ -180,6 +228,40 @@ class Settings:
             # we don't do this unconditionally (breaks Windows).
             os.environ["TZ"] = self.TIME_ZONE
             time.tzset()
+
+        if self.is_overridden("DEFAULT_FILE_STORAGE"):
+            if self.is_overridden("STORAGES"):
+                raise ImproperlyConfigured(
+                    "DEFAULT_FILE_STORAGE/STORAGES are mutually exclusive."
+                )
+            self.STORAGES = {
+                **self.STORAGES,
+                DEFAULT_STORAGE_ALIAS: {"BACKEND": self.DEFAULT_FILE_STORAGE},
+            }
+            warnings.warn(DEFAULT_FILE_STORAGE_DEPRECATED_MSG, RemovedInDjango51Warning)
+
+        if self.is_overridden("STATICFILES_STORAGE"):
+            if self.is_overridden("STORAGES"):
+                raise ImproperlyConfigured(
+                    "STATICFILES_STORAGE/STORAGES are mutually exclusive."
+                )
+            self.STORAGES = {
+                **self.STORAGES,
+                STATICFILES_STORAGE_ALIAS: {"BACKEND": self.STATICFILES_STORAGE},
+            }
+            warnings.warn(STATICFILES_STORAGE_DEPRECATED_MSG, RemovedInDjango51Warning)
+        # RemovedInDjango51Warning.
+        if self.is_overridden("STORAGES"):
+            setattr(
+                self,
+                "DEFAULT_FILE_STORAGE",
+                self.STORAGES.get(DEFAULT_STORAGE_ALIAS, {}).get("BACKEND"),
+            )
+            setattr(
+                self,
+                "STATICFILES_STORAGE",
+                self.STORAGES.get(STATICFILES_STORAGE_ALIAS, {}).get("BACKEND"),
+            )
 
     def is_overridden(self, setting):
         return setting in self._explicit_settings
@@ -213,9 +295,46 @@ class UserSettingsHolder:
 
     def __setattr__(self, name, value):
         self._deleted.discard(name)
-        if name == "FILE_CHARSET":
-            warnings.warn(FILE_CHARSET_DEPRECATED_MSG, RemovedInDjango31Warning)
+        if name == "DEFAULT_FILE_STORAGE":
+            self.STORAGES[DEFAULT_STORAGE_ALIAS] = {
+                "BACKEND": self.DEFAULT_FILE_STORAGE
+            }
+            warnings.warn(DEFAULT_FILE_STORAGE_DEPRECATED_MSG, RemovedInDjango51Warning)
+        if name == "STATICFILES_STORAGE":
+            self.STORAGES[STATICFILES_STORAGE_ALIAS] = {
+                "BACKEND": self.STATICFILES_STORAGE
+            }
+            warnings.warn(STATICFILES_STORAGE_DEPRECATED_MSG, RemovedInDjango51Warning)
+        if name == "FORMS_URLFIELD_ASSUME_HTTPS":
+            warnings.warn(
+                FORMS_URLFIELD_ASSUME_HTTPS_DEPRECATED_MSG,
+                RemovedInDjango60Warning,
+            )
         super().__setattr__(name, value)
+        # RemovedInDjango51Warning.
+        if name == "STORAGES":
+            if default_file_storage := self.STORAGES.get(DEFAULT_STORAGE_ALIAS):
+                super().__setattr__(
+                    "DEFAULT_FILE_STORAGE", default_file_storage.get("BACKEND")
+                )
+            else:
+                self.STORAGES.setdefault(
+                    DEFAULT_STORAGE_ALIAS,
+                    {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+                )
+            if staticfiles_storage := self.STORAGES.get(STATICFILES_STORAGE_ALIAS):
+                super().__setattr__(
+                    "STATICFILES_STORAGE", staticfiles_storage.get("BACKEND")
+                )
+            else:
+                self.STORAGES.setdefault(
+                    STATICFILES_STORAGE_ALIAS,
+                    {
+                        "BACKEND": (
+                            "django.contrib.staticfiles.storage.StaticFilesStorage"
+                        ),
+                    },
+                )
 
     def __delattr__(self, name):
         self._deleted.add(name)

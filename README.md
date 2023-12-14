@@ -3,7 +3,7 @@
 
 [![Build Status](https://travis-ci.com/somenzz/djangomail.svg?branch=master)](https://travis-ci.com/somenzz/djangomail)
 
-将 mail 模块从 Django 中独立出来，做为 Python 发邮件的独立的库，就是 djangomail，使用起来比 smtplib 要方便很多。
+将 mail 模块从 Django 5.0 中独立出来，做为 Python 发邮件的独立的库，就是 djangomail，使用起来比 smtplib 要方便很多。
 
 
 ## 安装
@@ -38,8 +38,6 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 ```python
 from djangomail import send_mail,send_mass_mail
 import settings
-import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 
 receivers = ['somenzz@163.com']
 
@@ -159,7 +157,7 @@ msg.send()
 django 自己的 global_settings 其实已经有以下配置：
 
 ```python
-EMAIL_BACKEND = 'djangomail.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'djangomail.backends.smtp.EmailBackend'
 ```
 
 只要我们按照 EmailBackend 的格式编写自己的 Backend 就可以实现自定义的消息发送，比如说发送到微信。
@@ -327,4 +325,4 @@ test_retry()
 
 公众号「Python七号」
 
-微信号「somenzz」
+微信号「somenzz-enjoy」

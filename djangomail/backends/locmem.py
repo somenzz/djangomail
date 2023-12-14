@@ -2,8 +2,8 @@
 Backend for test environment.
 """
 
-from djangomail import mail
-from djangomail.backends.base import BaseEmailBackend
+from djangmail import mail
+from djangmail.mail.backends.base import BaseEmailBackend
 
 
 class EmailBackend(BaseEmailBackend):
