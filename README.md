@@ -31,7 +31,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 ### 发送普通文本邮件
 
-只需要导入 send_mail,send_mass_mail，设置下环境变量 `DJANGO_SETTINGS_MODULE`， 这是 Django 读取自定义配置文件的内容所需要的。
+只需要导入 send_mail,send_mass_mail，设置下环境变量 `SETTINGS_MODULE`， 这是 Django 读取自定义配置文件的内容所需要的。
 
 示例代码如下：
 
@@ -76,7 +76,7 @@ from djangomail import EmailMessage
 
 import settings
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+os.environ.setdefault("SETTINGS_MODULE", "settings") #此行代码也可以不写，默认的指向就是 settings.py
 
 receivers = ['somenzz@163.com']
 
@@ -109,7 +109,7 @@ from djangomail import EmailMultiAlternatives
 from email.mime.image import MIMEImage
 import settings
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+os.environ.setdefault("SETTINGS_MODULE", "settings")
 
 
 subject = 'djangomail 发送带图片的 html 邮件'
@@ -199,7 +199,7 @@ pip install somedecorators
 ```python
 from somedecorators import email_on_exception
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+os.environ.setdefault("SETTINGS_MODULE", "settings")
 
 @email_on_exception(['somenzz@163.com'])
 def myfunc():
@@ -218,7 +218,7 @@ myfunc()
 
 from somedecorators import email_on_exception
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+os.environ.setdefault("SETTINGS_MODULE", "settings")
 
 class Exception1(Exception):
     pass

@@ -16,7 +16,7 @@ readme = Path("README.md")
 # Read the version without importing the package
 # (and thus attempting to import packages it depends on that may not be
 # installed yet)
-version = "0.6"
+version = "0.8"
 
 NAME = 'djangomail'
 VERSION = version

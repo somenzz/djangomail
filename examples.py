@@ -1,7 +1,7 @@
 from djangomail import send_mail,send_mass_mail
 import settings
 #import os
-#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings") 可以不写，这个是默认值
+#os.environ.setdefault("SETTINGS_MODULE", "settings") 可以不写，这个是默认值
 
 receivers = ['somexxxx@163.com','8976xxxxx@qq.com']
 # 使用方法同 Django

@@ -16,10 +16,16 @@ from pathlib import Path
 #import django
 from djangomail.conf import global_settings
 from djangomail.exceptions import ImproperlyConfigured
-from djangomail.utils.deprecation import RemovedInDjango51Warning, RemovedInDjango60Warning
 from djangomail.utils.functional import LazyObject, empty
 
-ENVIRONMENT_VARIABLE = "DJANGO_SETTINGS_MODULE"
+class RemovedInDjango51Warning(DeprecationWarning):
+    pass
+
+
+class RemovedInDjango60Warning(PendingDeprecationWarning):
+    pass
+
+ENVIRONMENT_VARIABLE = "SETTINGS_MODULE"
 DEFAULT_STORAGE_ALIAS = "default"
 STATICFILES_STORAGE_ALIAS = "staticfiles"
 

@@ -5,7 +5,7 @@ from decimal import Decimal
 from types import NoneType
 from urllib.parse import quote
 
-from django.utils.functional import Promise
+from djangomail.utils.functional import Promise
 
 
 class DjangoUnicodeDecodeError(UnicodeDecodeError):

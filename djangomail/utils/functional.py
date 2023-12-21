@@ -385,7 +385,7 @@ class SimpleLazyObject(LazyObject):
     A lazy object initialized from any function.
 
     Designed for compound objects of unknown type. For builtins or objects of
-    known type, use django.utils.functional.lazy.
+    known type, use djangomail.utils.functional.lazy.
     """
 
     def __init__(self, func):
